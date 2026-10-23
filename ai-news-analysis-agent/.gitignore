@@ -1,0 +1,21 @@
+# Ignore Maven build output
+target/
+
+# Ignore compiled Java files
+*.class
+
+# Ignore logs
+*.log
+
+# Ignore environment variables and local secrets (stage 2 instructions -- I'll use .env to store them)
+.env
+.env.*
+!.env.example
+
+# Ignore Java IDE files
+*.iml
+.idea/
+
+# Ignore operating system files
+.DS_Store
+Thumbs.db
