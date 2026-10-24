@@ -41,4 +41,5 @@ public class Topic {
     public void setTracked(boolean tracked) {
         this.tracked = tracked;
     }
+    
 }
