@@ -6,16 +6,16 @@ public class Article {
     private String id;
     private String title;
     private String content;
-    private String sourceURL;
+    private String sourceUrl;
     private LocalDateTime publishedDate;
     private String category; // F03 -- Article Categorization
     private boolean saved; // F14 -- Saved Articles
 
-    public Article(String id, String title, String content, String sourceURL, LocalDateTime publishedDate) {
+    public Article(String id, String title, String content, String sourceUrl, LocalDateTime publishedDate) {
         this.id = id;
         this.title = title;
         this.content = content;
-        this.sourceURL = sourceURL;
+        this.sourceUrl = sourceUrl;
         this.publishedDate = publishedDate;
         this.saved = false;
     }
@@ -33,8 +33,8 @@ public class Article {
         return content;
     }
 
-    public String getSourceURL() {
-        return sourceURL;
+    public String getSourceUrl() {
+        return sourceUrl;
     }
 
     public LocalDateTime getPublishedDate() {
