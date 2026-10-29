@@ -24,11 +24,12 @@ public class NewsAPIAdapter implements NewsSourceAdapter {
 
     public NewsAPIAdapter() {
         // Load my news api key from .env file (never commited)
-        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+        Dotenv dotenv = Dotenv.configure().directory("./ai-news-analysis-agent").ignoreIfMissing().load();
         this.apiKey = dotenv.get("NEWS_API_KEY");
-        
+    
         if (this.apiKey == null || this.apiKey.isEmpty()) {
-            System.err.println("WARNING: NEWS_API_KEY not found in .env file.");
+            System.err.println("WARNING: NEWS_API_KEY not found.");
+            System.err.println("Working dir: " + System.getProperty("user.dir"));
         }
 
         this.httpClient = HttpClient.newHttpClient();
@@ -47,11 +48,7 @@ public class NewsAPIAdapter implements NewsSourceAdapter {
             String encodedQuery = URLEncoder.encode(query.isEmpty() ? "technology" : query, StandardCharsets.UTF_8);
             String url = "https://newsapi.org/v2/everything?q=" + encodedQuery + "&language=en&sortBy=publishedAt&pageSize=10&apiKey=" + apiKey;
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Accept", "application/json")
-                    .GET()
-                    .build();
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).header("Accept", "application/json").GET().build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 

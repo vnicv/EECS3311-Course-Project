@@ -1,5 +1,6 @@
 package com.nicole.newsagent;
 
+/* 
 import com.nicole.newsagent.ai.LLMClient;
 import com.nicole.newsagent.ai.strategies.AnalysisStrategy;
 import com.nicole.newsagent.ai.strategies.Summarization;
@@ -9,13 +10,65 @@ import com.nicole.newsagent.repositories.ArticleRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+*/
 
-/**
- * Hello world!
- *
- */
+import com.nicole.newsagent.agent.AgentController;
+import com.nicole.newsagent.models.Article;
+
+import java.util.List;
+import java.util.Scanner;
+
 public class Main {
-    public static void main( String[] args ){
+    public static void main(String[] args) {
+        System.out.println("=== AI News Analysis Agent ===");
+        AgentController controller = new AgentController();
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("\nMenu:");
+            System.out.println("1. Fetch Tech News");
+            System.out.println("2. Summarize an Article");
+            System.out.println("3. Exit");
+            System.out.print("Choose an option: ");
+            
+            String choice = scanner.nextLine();
+
+            switch (choice) {
+                case "1":
+                    List<Article> fetched = controller.fetchNews("NEWS_API", "technology"); // Uses live API
+                    // Or use "RSS" for the free BBC feed
+                    System.out.println("Fetched " + fetched.size() + " articles.");
+                    for (int i = 0; i < fetched.size() && i < 5; i++) { // Show top 5
+                        System.out.println("[" + i + "] " + fetched.get(i).getTitle());
+                    }
+                    break;
+                case "2":
+                    List<Article> allArticles = controller.getAllStoredArticles();
+                    if (allArticles.isEmpty()) {
+                        System.out.println("No articles in memory. Fetch some first!");
+                        break;
+                    }
+                    System.out.print("Enter article index to summarize (0-" + (allArticles.size()-1) + "): ");
+                    try {
+                        int index = Integer.parseInt(scanner.nextLine());
+                        Article selected = allArticles.get(index);
+                        System.out.println("Summarizing: " + selected.getTitle());
+                        String summary = controller.summarize(selected);
+                        System.out.println("\n--- SUMMARY ---\n" + summary + "\n---------------");
+                    } catch (Exception e) {
+                        System.out.println("Invalid index.");
+                    }
+                    break;
+                case "3":
+                    System.out.println("Exiting...");
+                    scanner.close();
+                    return;
+                default:
+                    System.out.println("Invalid choice.");
+            }
+        }
+    }
+    /*public static void main( String[] args ){
         // Test outputs
         System.out.println( "AI News Analysis Agent Loading..." ); 
 
@@ -45,12 +98,6 @@ public class Main {
         // Print the result
         System.out.println("ARTICLE SUMMARY");
         System.out.println(summaryResult);
-
-        /* 
-        System.out.println("Sending prompt to the LLM...");
-        String response = llmClient.generate("Summarize this in one sentence: Students who work need to balance their schedules. They need time for work, class, and homework. Not planning can cause problems. They won't have time for other activities if they don't plan carefully.");
-        System.out.println("LLM Response:");
-        System.out.println(response);
-        */
     }
+    */
 }
