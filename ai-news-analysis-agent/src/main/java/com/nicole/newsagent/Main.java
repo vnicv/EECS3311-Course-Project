@@ -13,12 +13,90 @@ import java.util.UUID;
 */
 
 import com.nicole.newsagent.agent.AgentController;
+import com.nicole.newsagent.gui.NewsDashboard;
 import com.nicole.newsagent.models.Article;
 
+import javax.swing.*;
 import java.util.List;
 import java.util.Scanner;
 
 public class Main {
+    public static void main(String[] args) {
+        System.out.println("AI News Analysis Agent Loading...");
+        AgentController controller = new AgentController();
+
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("\nSelect Mode:");
+        System.out.println("1. Command Line Interface (CLI)");
+        System.out.println("2. Graphical User Interface (GUI)");
+        System.out.print("Choice: ");
+        
+        String choice = scanner.nextLine();
+
+        if (choice.equals("2")) {
+            // Launch Swing GUI on the Event Dispatch Thread
+            SwingUtilities.invokeLater(() -> {
+                NewsDashboard dashboard = new NewsDashboard(controller);
+                dashboard.setVisible(true);
+            });
+        } else {
+            // Run CLI
+            runCLI(controller, scanner);
+        }
+    }
+
+    private static void runCLI(AgentController controller, Scanner scanner) {
+        while (true) {
+            System.out.println("\nMenu:");
+            System.out.println("1. Fetch News (NewsAPI)");
+            System.out.println("2. Fetch Tech News (BBC RSS)");
+            System.out.println("3. Summarize an Article");
+            System.out.println("4. Exit");
+            System.out.print("Choose an option: ");
+            
+            String choice = scanner.nextLine();
+
+            switch (choice) {
+                case "1":
+                    System.out.print("Enter search query: ");
+                    String query = scanner.nextLine();
+                    List<Article> fetched = controller.fetchNews("NEWS_API", query);
+                    System.out.println("Fetched " + fetched.size() + " articles.");
+                    for (int i = 0; i < fetched.size() && i < 5; i++) {
+                        System.out.println("[" + i + "] " + fetched.get(i).getTitle());
+                    }
+                    break;
+                case "2":
+                    List<Article> rssFetched = controller.fetchNews("RSS", "");
+                    System.out.println("Fetched " + rssFetched.size() + " RSS articles.");
+                    break;
+                case "3":
+                    List<Article> allArticles = controller.getAllStoredArticles();
+                    if (allArticles.isEmpty()) {
+                        System.out.println("No articles in memory. Fetch some first!");
+                        break;
+                    }
+                    System.out.print("Enter article index (0-" + (allArticles.size()-1) + "): ");
+                    try {
+                        int index = Integer.parseInt(scanner.nextLine());
+                        Article selected = allArticles.get(index);
+                        System.out.println("Summarizing (please wait)...");
+                        String summary = controller.summarize(selected);
+                        System.out.println("\n--- SUMMARY ---\n" + summary + "\n---------------");
+                    } catch (Exception e) {
+                        System.out.println("Invalid index.");
+                    }
+                    break;
+                case "4":
+                    System.out.println("Exiting...");
+                    scanner.close();
+                    return;
+                default:
+                    System.out.println("Invalid choice.");
+            }
+        }
+    }
+    /*
     public static void main(String[] args) {
         System.out.println("=== AI News Analysis Agent ===");
         AgentController controller = new AgentController();
@@ -38,7 +116,7 @@ public class Main {
                     List<Article> fetched = controller.fetchNews("NEWS_API", "technology"); // Uses live API
                     // Or use "RSS" for the free BBC feed
                     System.out.println("Fetched " + fetched.size() + " articles.");
-                    for (int i = 0; i < fetched.size() && i < 5; i++) { // Show top 5
+                    for (int i = 0; i < fetched.size() && i < 10; i++) { // Show top 5
                         System.out.println("[" + i + "] " + fetched.get(i).getTitle());
                     }
                     break;
@@ -67,37 +145,6 @@ public class Main {
                     System.out.println("Invalid choice.");
             }
         }
-    }
-    /*public static void main( String[] args ){
-        // Test outputs
-        System.out.println( "AI News Analysis Agent Loading..." ); 
-
-        // Test LLMClient class
-        System.out.println("Connecting to Ollama...");
-        LLMClient llmClient = new LLMClient();
-
-        // Test the models and the repositories
-        System.out.println("Creating mock article and saving to ArticleRepository...\n");
-        ArticleRepository articleRepo = new ArticleRepository();
-
-        // Create fake article: fill with random generated id, fake article info, and current time
-        Article mockArticle = new Article(UUID.randomUUID().toString(), "Tech Stocks Rally", "The stock market saw a massive rally today as major tech companies reported earnings that exceeded analyst expectations. Investors are optimistic about the future of AI integration in consumer products. However, some analysts warn of a potential bubble and advise caution for retail investors moving forward.", "https://example.com/news/tech-rally", LocalDateTime.now());
-
-        // Test the ArticleRepository saving and retrieval functions
-        articleRepo.save(mockArticle); // save the article in the ArticleRepository
-        List<Article> allArticles = articleRepo.findAll();
-        Article retrievedArticle = allArticles.get(0);
-        System.out.println("Retrieved article from repository: " + retrievedArticle.getTitle() + "\n");
-
-        // Test the strategy pattern (i.e., Summarization)
-        System.out.println("Initializing Summarization Strategy...");
-        AnalysisStrategy<String, String> summarizationStrategy = new Summarization(llmClient);
-        System.out.println("Sending article to the LLM for summarization... (this may take a while, please wait)\n");
-        String summaryResult = summarizationStrategy.analyze(retrievedArticle.getContent());
-
-        // Print the result
-        System.out.println("ARTICLE SUMMARY");
-        System.out.println(summaryResult);
     }
     */
 }
