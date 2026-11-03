@@ -2,6 +2,7 @@ package com.nicole.newsagent.ai.strategies;
 
 import com.nicole.newsagent.ai.LLMClient;
 
+// F04 -- Article Summarization
 public class Summarization implements AnalysisStrategy<String, String> {
     private final LLMClient llmClient;
 
