@@ -2,7 +2,6 @@ package com.nicole.newsagent.ai.strategies;
 
 import com.nicole.newsagent.ai.LLMClient;
 
-
 // F03 -- Article Categorization
 public class Categorization implements AnalysisStrategy<String, String> {
     private final LLMClient llmClient;
