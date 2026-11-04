@@ -6,6 +6,7 @@ import com.nicole.newsagent.models.Article;
 // Java Swing GUI toolkit
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.Callable;
 
 public class ArticleViewer extends JDialog {
     private final Article article;
@@ -50,15 +51,51 @@ public class ArticleViewer extends JDialog {
 
         // Bottom Panel: AI Summary 
         JPanel bottomPanel = new JPanel(new BorderLayout(5, 5));
-        bottomPanel.setBorder(BorderFactory.createTitledBorder("AI Summary"));
+        bottomPanel.setBorder(BorderFactory.createTitledBorder("AI Analysis"));
         
-        JTextArea summaryArea = new JTextArea(6, 50);
+        JTextArea summaryArea = new JTextArea(8, 50);
         summaryArea.setLineWrap(true);
         summaryArea.setWrapStyleWord(true);
         summaryArea.setEditable(false);
-        summaryArea.setText("Click 'Generate Summary' to analyze this article...");
+        summaryArea.setText("Click the button below to analyze this article...");
         bottomPanel.add(new JScrollPane(summaryArea), BorderLayout.CENTER);
 
+        // Analysis Buttons
+        JPanel analysisBtnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton summarizeBtn = new JButton("Summarize");
+        JButton categorizeBtn = new JButton("Categorize");
+        JButton entitiesBtn = new JButton("Extract Entities");
+        JButton claimsBtn = new JButton("Extract Claims");
+        JButton saveBtn = new JButton("Save Article");
+
+        summarizeBtn.addActionListener(e -> runAnalysis(summaryArea, "Summarizing",
+                () -> controller.summarize(article)));
+        categorizeBtn.addActionListener(e -> runAnalysis(summaryArea, "Categorizing",
+                () -> "Category: " + controller.categorize(article)));
+        entitiesBtn.addActionListener(e -> runAnalysis(summaryArea, "Extracting Entities",
+                () -> "Entities:\n" + controller.extractEntities(article)));
+        claimsBtn.addActionListener(e -> runAnalysis(summaryArea, "Extracting Claims",
+                () -> "Claims:\n" + controller.extractClaims(article)));
+
+        saveBtn.addActionListener(e -> {
+            controller.saveArticle(article);
+            saveBtn.setText("Saved ✓");
+            saveBtn.setEnabled(false);
+        });
+
+        analysisBtnPanel.add(summarizeBtn);
+        analysisBtnPanel.add(categorizeBtn);
+        analysisBtnPanel.add(entitiesBtn);
+        analysisBtnPanel.add(claimsBtn);
+        analysisBtnPanel.add(saveBtn);
+
+        JPanel buttonPanel = new JPanel(new BorderLayout());
+        buttonPanel.add(analysisBtnPanel, BorderLayout.WEST);
+        bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        add(bottomPanel, BorderLayout.SOUTH);
+
+        /*
         JButton summarizeBtn = new JButton("Generate Summary");
         summarizeBtn.addActionListener(e -> {
             summarizeBtn.setEnabled(false);
@@ -90,5 +127,26 @@ public class ArticleViewer extends JDialog {
         buttonPanel.add(summarizeBtn);
         bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
         add(bottomPanel, BorderLayout.SOUTH);
+        */
+    }
+
+    private void runAnalysis(JTextArea area, String label, Callable<String> task) {
+        area.setText("Running " + label + " (please wait — the local LLM may take 10-30 seconds)...");
+        SwingWorker<String, Void> worker = new SwingWorker<>() {
+            @Override
+            protected String doInBackground() throws Exception {
+                return task.call();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    area.setText(get());
+                } catch (Exception ex) {
+                    area.setText("Error: " + ex.getMessage());
+                }
+            }
+        };
+        worker.execute();
     }
 }

@@ -17,6 +17,9 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 public class RSSAdapter implements NewsSourceAdapter {
     private final String feedUrl;
 
@@ -41,6 +44,79 @@ public class RSSAdapter implements NewsSourceAdapter {
             SyndFeedInput input = new SyndFeedInput();
             SyndFeed feed = input.build(new XmlReader(stream)); // use uri and InputStream instead to avoid deprecated construtor
 
+            int count = 0;
+            for (SyndEntry entry : feed.getEntries()) {
+                // Limit to 10 articles to avoid long fetch times
+                if (count >= 10) break;
+
+                String title = entry.getTitle() != null ? entry.getTitle() : "";
+                if (query != null && !query.isEmpty() && !title.toLowerCase().contains(query.toLowerCase())) {
+                    continue;
+                }
+
+                String link = entry.getLink();
+                String content = "";
+
+                // Try to scrape the full article from the URL
+                System.out.println("Scraping: " + link);
+                content = scrapeArticle(link);
+
+                // Fallback to description if scraping fails
+                if (content == null || content.trim().length() < 100) {
+                    content = entry.getDescription() != null ? entry.getDescription().getValue() : "";
+                }
+
+                Article article = new Article(
+                        UUID.randomUUID().toString(),
+                        title,
+                        content,
+                        link,
+                        entry.getPublishedDate() != null ?
+                                LocalDateTime.ofInstant(entry.getPublishedDate().toInstant(), ZoneId.systemDefault()) :
+                                LocalDateTime.now()
+                );
+                articles.add(article);
+                count++;
+            }
+            /* 
+            for (SyndEntry entry : feed.getEntries()) {
+                String title = entry.getTitle() != null ? entry.getTitle() : "";
+                
+                if (query != null && !query.isEmpty() && !title.toLowerCase().contains(query.toLowerCase())) {
+                    continue;
+                }
+
+                // Try to get FULL content first (content:encoded), fall back to description
+                String content = "";
+                
+                // Rome puts "content:encoded" into the "contents" foreign markup list
+                if (entry.getContents() != null && !entry.getContents().isEmpty()) {
+                    content = entry.getContents().get(0).getValue();
+                }
+                
+                // If full content is empty or too short, combine with description
+                if (content == null || content.trim().length() < 200) {
+                    String description = entry.getDescription() != null ? entry.getDescription().getValue() : "";
+                    content = (content != null ? content + "\n\n" : "") + description;
+                }
+
+                // Strip HTML tags so the LLM doesn't have to deal with markup
+                content = stripHtml(content);
+
+                Article article = new Article(
+                        UUID.randomUUID().toString(),
+                        title,
+                        content,
+                        entry.getLink(),
+                        entry.getPublishedDate() != null ?
+                                LocalDateTime.ofInstant(entry.getPublishedDate().toInstant(), ZoneId.systemDefault()) :
+                                LocalDateTime.now()
+                );
+                articles.add(article);
+            }
+            */
+
+            /* 
             // Iterate through every entry in the feed and convert to Article model
             for (SyndEntry entry : feed.getEntries()) {
                 // Use entry description as content. If empty string missing, fall back
@@ -55,10 +131,46 @@ public class RSSAdapter implements NewsSourceAdapter {
                 Article article = new Article(UUID.randomUUID().toString(), entry.getTitle(), content, entry.getLink(), entry.getPublishedDate() != null ? LocalDateTime.ofInstant(entry.getPublishedDate().toInstant(), ZoneId.systemDefault()) : LocalDateTime.now());
                 articles.add(article);
             }
+            */
         } catch (Exception e) {
             System.out.println("Error fetching RSS feed: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return articles;
     }
+
+    private String scrapeArticle(String url) {
+        try {
+            Document doc = Jsoup.connect(url)
+                    .userAgent("Mozilla/5.0 (compatible; NewsAgent/1.0)")
+                    .timeout(5000)
+                    .get();
+
+            // Try common article containers across news sites
+            String[] selectors = {"article", "[class*=article-body]", "[class*=story-body]", "main", "[role=main]"};
+            for (String selector : selectors) {
+                if (!doc.select(selector).isEmpty()) {
+                    String text = doc.select(selector).first().text();
+                    if (text.length() > 300) return text;
+                }
+            }
+
+            // Fallback: extract all paragraph tags
+            return doc.select("p").text();
+        } catch (Exception e) {
+            System.err.println("Could not scrape " + url + ": " + e.getMessage());
+            return "";
+        }
+    }
+    /* 
+    // Simple HTML stripper: removes <tag> ... </tag> and replaces with text
+    private String stripHtml(String html) {
+        if (html == null) return "";
+        // Remove tags
+        String noTags = html.replaceAll("<[^>]+>", " ");
+        // Collapse whitespace
+        return noTags.replaceAll("\\s+", " ").trim();
+    }
+    */
 }

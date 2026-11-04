@@ -61,6 +61,13 @@
       <version>3.0.0</version>
     </dependency>
 
+    <!-- jsoup for scraping URL -->
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>1.17.2</version>
+    </dependency>
+
     <!-- Switch to Junit 5 for Testing-->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
