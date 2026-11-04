@@ -56,15 +56,16 @@ public class NewsDashboard extends JFrame {
         JButton clustersBtn = new JButton("Detect Duplicate Stories / Clusters");
         JButton savedBtn = new JButton("View Saved Articles");
         JButton timelineBtn = new JButton("View Timeline");
+        JButton historyBtn = new JButton("Search History");
 
         bottomPanel.add(viewArticleBtn);
         bottomPanel.add(clustersBtn);
         bottomPanel.add(savedBtn);
         bottomPanel.add(timelineBtn);
+        bottomPanel.add(historyBtn);
         add(bottomPanel, BorderLayout.SOUTH);
 
         // --- Action Listeners --- 
-        
         // Fetch from NewsAPI
         fetchBtn.addActionListener(e -> {
             String query = searchField.getText().trim();
@@ -187,6 +188,24 @@ public class NewsDashboard extends JFrame {
             }
             showScrollableDialog("Timeline", sb.toString());
         });
+
+        // View Search History
+        historyBtn.addActionListener(e -> {
+            List<String> history = controller.getSearchHistory();
+            if (history.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No search history yet.");
+                return;
+            }
+            StringBuilder sb = new StringBuilder("Search History:\n\n");
+            for (int i = 0; i < history.size(); i++) {
+                sb.append(i + 1).append(". ").append(history.get(i)).append("\n");
+            }
+            int confirm = JOptionPane.showOptionDialog(this, sb.toString(), "Search History", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new String[]{"Close", "Clear History"}, "Close");
+            if (confirm == 1) {
+                controller.clearSearchHistory();
+                JOptionPane.showMessageDialog(this, "Search history cleared.");
+            }
+        });
     }
 
     private void showScrollableDialog(String title, String text) {
@@ -200,6 +219,11 @@ public class NewsDashboard extends JFrame {
     }
     
     private void fetchArticles(JButton sourceBtn, String originalText, String sourceType, String query) {
+        // Record this search
+        if (!query.isEmpty()) {
+            controller.recordSearch(query);
+        }
+
         sourceBtn.setEnabled(false);
         sourceBtn.setText("Fetching...");
         listModel.clear();

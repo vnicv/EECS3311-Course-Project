@@ -10,12 +10,14 @@ import com.nicole.newsagent.models.TimelineEvent;
 import com.nicole.newsagent.repositories.ArticleRepository;
 import com.nicole.newsagent.sources.NewsSourceAdapter;
 import com.nicole.newsagent.sources.NewsSourceFactory;
+import com.nicole.newsagent.repositories.SearchHistoryRepository;
 import java.util.List;
 
 // Construct the agent, and wire each strategy to the shared LLM client
 public class NewsAnalysisAgent {
     private final LLMClient llmClient;
     private final ArticleRepository articleRepository;
+    private final SearchHistoryRepository searchHistoryRepository;
     
     private final Summarization summarization;
     private final Categorization categorization;
@@ -27,6 +29,7 @@ public class NewsAnalysisAgent {
     public NewsAnalysisAgent(LLMClient llmClient, ArticleRepository articleRepository) {
         this.llmClient = llmClient;
         this.articleRepository = articleRepository;
+        this.searchHistoryRepository = new SearchHistoryRepository();
         this.summarization = new Summarization(llmClient);
         this.categorization = new Categorization(llmClient);
         this.entityExtraction = new EntityExtraction(llmClient);
@@ -47,7 +50,6 @@ public class NewsAnalysisAgent {
     }
 
     // --- News Analysis Strategies ---
-
     public String summarize(Article article) { 
         return summarization.analyze(article.getContent()); 
     }
@@ -88,6 +90,19 @@ public class NewsAnalysisAgent {
             timeline.addEvent(new TimelineEvent(a.getId(), a.getTitle(), a.getPublishedDate()));
         }
         return timeline;
+    }
+
+    // --- Search History ---
+    public void recordSearch(String query) {
+        searchHistoryRepository.save(query);
+    }
+
+    public List<String> getSearchHistory() {
+        return searchHistoryRepository.findAll();
+    }
+
+    public void clearSearchHistory() {
+        searchHistoryRepository.clear();
     }
 }
 

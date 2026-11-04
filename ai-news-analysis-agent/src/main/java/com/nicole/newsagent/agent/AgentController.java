@@ -74,4 +74,17 @@ public class AgentController {
     public List<Article> getSavedArticles() {
         return articleRepository.findAll().stream().filter(Article::isSaved).toList();
     }
+
+    // --- Search History ---
+    public void recordSearch(String query) { 
+        agent.recordSearch(query); 
+    }
+
+    public List<String> getSearchHistory() { 
+        return agent.getSearchHistory(); 
+    }
+
+    public void clearSearchHistory() { 
+        agent.clearSearchHistory(); 
+    }
 }
