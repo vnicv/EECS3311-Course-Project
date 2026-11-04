@@ -5,6 +5,8 @@ import com.nicole.newsagent.ai.LLMClient;
 //import com.nicole.newsagent.ai.strategies.Summarization;
 import com.nicole.newsagent.ai.strategies.*;
 import com.nicole.newsagent.models.Article;
+import com.nicole.newsagent.models.Timeline;
+import com.nicole.newsagent.models.TimelineEvent;
 import com.nicole.newsagent.repositories.ArticleRepository;
 import com.nicole.newsagent.sources.NewsSourceAdapter;
 import com.nicole.newsagent.sources.NewsSourceFactory;
@@ -76,6 +78,16 @@ public class NewsAnalysisAgent {
     // Group related articles into clusters based on content similarity
     public List<List<Article>> clusterArticles(List<Article> articles) { 
         return clustering.analyze(articles); 
+    }
+
+    // Timeline generation
+    public Timeline generateTimeline(List<Article> articles) {
+        // Sort by publish date - real timeline generation
+        Timeline timeline = new Timeline();
+        for (Article a : articles) {
+            timeline.addEvent(new TimelineEvent(a.getId(), a.getTitle(), a.getPublishedDate()));
+        }
+        return timeline;
     }
 }
 

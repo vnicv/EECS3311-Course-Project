@@ -2,6 +2,7 @@ package com.nicole.newsagent.agent;
 
 import com.nicole.newsagent.ai.LLMClient;
 import com.nicole.newsagent.models.Article;
+import com.nicole.newsagent.models.Timeline;
 import com.nicole.newsagent.repositories.ArticleRepository;
 import java.util.List;
 
@@ -30,6 +31,7 @@ public class AgentController {
     }
     */
 
+    // --- Single Article Analysis
     public String summarize(Article article) { 
         return agent.summarize(article); 
     }
@@ -46,6 +48,7 @@ public class AgentController {
         return agent.extractClaims(article); 
     }
 
+    // --- Multi-Article Analysis
     public String compareArticles(List<Article> articles) { 
         return agent.compare(articles); 
     }
@@ -54,6 +57,12 @@ public class AgentController {
         return agent.clusterArticles(articleRepository.findAll()); 
     }
 
+    // --- Timeline ---
+    public Timeline generateTimeline() {
+        return agent.generateTimeline(articleRepository.findAll());
+    }
+
+    // --- Article Storage ---
     public List<Article> getAllStoredArticles() {
         return articleRepository.findAll();
     }

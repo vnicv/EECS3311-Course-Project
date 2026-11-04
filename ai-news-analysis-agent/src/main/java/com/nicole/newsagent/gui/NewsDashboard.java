@@ -2,6 +2,8 @@ package com.nicole.newsagent.gui;
 
 import com.nicole.newsagent.agent.AgentController;
 import com.nicole.newsagent.models.Article;
+import com.nicole.newsagent.models.Timeline;
+import com.nicole.newsagent.models.TimelineEvent;
 
 // Java Swing GUI toolkit
 import javax.swing.*;
@@ -53,13 +55,15 @@ public class NewsDashboard extends JFrame {
         JButton viewArticleBtn = new JButton("View & Analyze Article");
         JButton clustersBtn = new JButton("Detect Duplicate Stories / Clusters");
         JButton savedBtn = new JButton("View Saved Articles");
+        JButton timelineBtn = new JButton("View Timeline");
 
         bottomPanel.add(viewArticleBtn);
         bottomPanel.add(clustersBtn);
         bottomPanel.add(savedBtn);
+        bottomPanel.add(timelineBtn);
         add(bottomPanel, BorderLayout.SOUTH);
 
-        // Action Listeners 
+        // --- Action Listeners --- 
         
         // Fetch from NewsAPI
         fetchBtn.addActionListener(e -> {
@@ -168,8 +172,33 @@ public class NewsDashboard extends JFrame {
             scroll.setPreferredSize(new Dimension(700, 400));
             JOptionPane.showMessageDialog(this, scroll, "Saved Articles", JOptionPane.INFORMATION_MESSAGE);
         });
+
+        // View Timeline
+        timelineBtn.addActionListener(e -> {
+            Timeline timeline = controller.generateTimeline();
+            List<TimelineEvent> events = timeline.getEvents();
+            if (events.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No articles loaded yet. Fetch some news first.");
+                return;
+            }
+            StringBuilder sb = new StringBuilder("Chronological Timeline of Loaded Articles:\n\n");
+            for (TimelineEvent ev : events) {
+                sb.append(ev.getDate().toLocalDate()).append("  ").append(ev.getDate().toLocalTime().withNano(0)).append("  —  ").append(ev.getDescription()).append("\n");
+            }
+            showScrollableDialog("Timeline", sb.toString());
+        });
     }
 
+    private void showScrollableDialog(String title, String text) {
+        JTextArea textArea = new JTextArea(text);
+        textArea.setEditable(false);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        JScrollPane scroll = new JScrollPane(textArea);
+        scroll.setPreferredSize(new Dimension(800, 450));
+        JOptionPane.showMessageDialog(this, scroll, title, JOptionPane.INFORMATION_MESSAGE);
+    }
+    
     private void fetchArticles(JButton sourceBtn, String originalText, String sourceType, String query) {
         sourceBtn.setEnabled(false);
         sourceBtn.setText("Fetching...");
