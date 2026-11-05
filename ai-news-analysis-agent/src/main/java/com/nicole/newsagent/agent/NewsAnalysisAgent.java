@@ -11,6 +11,8 @@ import com.nicole.newsagent.repositories.ArticleRepository;
 import com.nicole.newsagent.sources.NewsSourceAdapter;
 import com.nicole.newsagent.sources.NewsSourceFactory;
 import com.nicole.newsagent.repositories.SearchHistoryRepository;
+import com.nicole.newsagent.agent.NewsAgentTools;
+import com.nicole.newsagent.agent.PlanningEngine;
 import java.util.List;
 
 // Construct the agent, and wire each strategy to the shared LLM client
@@ -18,6 +20,7 @@ public class NewsAnalysisAgent {
     private final LLMClient llmClient;
     private final ArticleRepository articleRepository;
     private final SearchHistoryRepository searchHistoryRepository;
+    private final PlanningEngine planningEngine;
     
     private final Summarization summarization;
     private final Categorization categorization;
@@ -36,6 +39,9 @@ public class NewsAnalysisAgent {
         this.claimExtraction = new ClaimExtraction(llmClient);
         this.comparison = new Comparison(llmClient);
         this.clustering = new Clustering();
+
+        NewsAgentTools tools = new NewsAgentTools(articleRepository);
+        this.planningEngine = new PlanningEngine(llmClient.getChatModel(), tools);
     }
 
     public List<Article> retrieveArticles(String sourceType, String query) {
@@ -103,6 +109,12 @@ public class NewsAnalysisAgent {
 
     public void clearSearchHistory() {
         searchHistoryRepository.clear();
+    }
+
+    // Natural Language Query
+    public String answerQuery(String query) {
+        recordSearch(query);  // Save to search history
+        return planningEngine.answerQuery(query);
     }
 }
 

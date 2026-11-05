@@ -87,4 +87,9 @@ public class AgentController {
     public void clearSearchHistory() { 
         agent.clearSearchHistory(); 
     }
+
+    // Natural Language Query
+    public String answerQuery(String query) {
+        return agent.answerQuery(query);
+    }
 }

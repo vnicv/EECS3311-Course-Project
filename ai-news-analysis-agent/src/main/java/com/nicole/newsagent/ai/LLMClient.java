@@ -15,4 +15,8 @@ public class LLMClient {
     public String generate(String prompt) {
         return chatModel.generate(prompt);
     }
+
+    public ChatLanguageModel getChatModel() {
+        return chatModel;
+    }
 }

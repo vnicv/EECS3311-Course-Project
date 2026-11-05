@@ -18,7 +18,7 @@ public class NewsDashboard extends JFrame {
     public NewsDashboard(AgentController controller) {
         this.controller = controller;
         setTitle("AI News Analysis Agent");
-        setSize(1000, 700);
+        setSize(1000, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
@@ -63,6 +63,39 @@ public class NewsDashboard extends JFrame {
         bottomPanel.add(savedBtn);
         bottomPanel.add(timelineBtn);
         bottomPanel.add(historyBtn);
+        add(bottomPanel, BorderLayout.SOUTH);
+
+        // --- Agent Chat Panel (F15) ---
+        JPanel agentPanel = new JPanel(new BorderLayout(5, 5));
+        agentPanel.setBorder(BorderFactory.createTitledBorder("Ask the AI Agent (Natural-Language Queries)"));
+
+        JPanel inputRow = new JPanel(new BorderLayout(5, 5));
+        JTextField queryField = new JTextField();
+        queryField.setToolTipText("e.g., 'What's the latest news about technology?'");
+        JButton askBtn = new JButton("Ask Agent");
+        inputRow.add(queryField, BorderLayout.CENTER);
+        inputRow.add(askBtn, BorderLayout.EAST);
+
+        JTextArea answerArea = new JTextArea(6, 60);
+        answerArea.setLineWrap(true);
+        answerArea.setWrapStyleWord(true);
+        answerArea.setEditable(false);
+        answerArea.setText("Ask a question like: 'What's the latest news about AI?'\nThe agent will decide whether to search, then synthesize an answer.");
+        JScrollPane answerScroll = new JScrollPane(answerArea);
+
+        agentPanel.add(inputRow, BorderLayout.NORTH);
+        agentPanel.add(answerScroll, BorderLayout.CENTER);
+        agentPanel.setPreferredSize(new Dimension(0, 200));
+
+        // Wrap center + agent panel in a vertical split so the user can resize
+        JPanel centerContainer = new JPanel(new BorderLayout());
+        centerContainer.add(new JScrollPane(articleList), BorderLayout.CENTER);
+        centerContainer.add(agentPanel, BorderLayout.SOUTH);
+
+        // Remove previous BorderLayout.CENTER add and re-add
+        //removeAll();
+        add(topPanel, BorderLayout.NORTH);
+        add(centerContainer, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
 
         // --- Action Listeners --- 
@@ -172,6 +205,35 @@ public class NewsDashboard extends JFrame {
             JScrollPane scroll = new JScrollPane(textArea);
             scroll.setPreferredSize(new Dimension(700, 400));
             JOptionPane.showMessageDialog(this, scroll, "Saved Articles", JOptionPane.INFORMATION_MESSAGE);
+        });
+
+        // Ask Agent (F15)
+        askBtn.addActionListener(e -> {
+            String query = queryField.getText().trim();
+            if (query.isEmpty()) return;
+            askBtn.setEnabled(false);
+            askBtn.setText("Thinking...");
+            answerArea.setText("Agent is analyzing your question and deciding which tools to call.\n" +
+                    "This may take 1-3 minutes on a local LLM...");
+
+            SwingWorker<String, Void> worker = new SwingWorker<>() {
+                @Override
+                protected String doInBackground() {
+                    return controller.answerQuery(query);
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        answerArea.setText(get());
+                    } catch (Exception ex) {
+                        answerArea.setText("Error: " + ex.getMessage());
+                    }
+                    askBtn.setEnabled(true);
+                    askBtn.setText("Ask Agent");
+                }
+            };
+            worker.execute();
         });
 
         // View Timeline
