@@ -3,6 +3,7 @@ package com.nicole.newsagent.agent;
 import com.nicole.newsagent.ai.LLMClient;
 import com.nicole.newsagent.models.Article;
 import com.nicole.newsagent.models.Timeline;
+import com.nicole.newsagent.models.Topic;
 import com.nicole.newsagent.repositories.ArticleRepository;
 import java.util.List;
 
@@ -24,12 +25,18 @@ public class AgentController {
         return agent.retrieveArticles(sourceType, query);
     }
 
-    /*
-    public String summarize(Article article) {
-        System.out.println("Agent: Analyzing and summarizing article...");
-        return agent.summarizeArticle(article);
+    // --- Topic Creation ---
+    public Topic createTopic(String name) {
+        return agent.createTopic(name);
     }
-    */
+
+    public List<Topic> getAllTopics() {
+        return agent.getAllTopics();
+    }
+
+    public boolean deleteTopic(String id) {
+        return agent.deleteTopic(id);
+    }
 
     // --- Single Article Analysis
     public String summarize(Article article) { 
@@ -86,6 +93,27 @@ public class AgentController {
 
     public void clearSearchHistory() { 
         agent.clearSearchHistory(); 
+    }
+
+    // --- Topic Tracking ---
+    public void trackTopic(String topic) { 
+        agent.trackTopic(topic); 
+    }
+
+    public void untrackTopic(String topic) { 
+        agent.untrackTopic(topic); 
+    }
+
+    public List<String> getTrackedTopics() { 
+        return agent.getTrackedTopics(); 
+    }
+
+    public com.nicole.newsagent.agent.TopicTracker getTopicTracker() { 
+        return agent.getTopicTracker(); 
+    }
+
+    public void simulateTopicRefresh() { 
+        agent.simulateTopicRefresh(); 
     }
 
     // Natural Language Query
