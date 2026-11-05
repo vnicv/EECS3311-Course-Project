@@ -126,6 +126,49 @@ public class NewsAnalysisAgent {
         return timeline;
     }
 
+    // Daily Briefing Generation
+    public String generateDailyBriefing() {
+        List<Article> all = articleRepository.findAll();
+        if (all.isEmpty()) return "No articles available. Fetch some news first.";
+
+        List<List<Article>> clusters = clusterArticles(all);
+        clusters.sort((a, b) -> Integer.compare(b.size(), a.size()));
+
+        StringBuilder briefing = new StringBuilder();
+        briefing.append("=== DAILY BRIEFING ===\n");
+        briefing.append("Generated from ").append(all.size()).append(" articles across ")
+                .append(clusters.size()).append(" story clusters.\n\n");
+
+        int clusterNum = 1;
+        for (List<Article> cluster : clusters) {
+            if (cluster.isEmpty()) continue;
+            Article lead = cluster.get(0);
+
+            briefing.append("--- Story ").append(clusterNum++).append(" (").append(cluster.size()).append(" article(s)) ---\n");
+            briefing.append("Headline: ").append(lead.getTitle()).append("\n");
+            briefing.append("Source: ").append(lead.getSourceUrl()).append("\n");
+
+            // Fast extractive summary — no LLM call
+            briefing.append(extractiveSummary(lead.getContent(), 2)).append("\n\n");
+        }
+        return briefing.toString();
+    }
+
+    // Extract the first N meaningful sentences from the text
+    private String extractiveSummary(String text, int sentenceCount) {
+        if (text == null || text.isEmpty()) return "";
+        String clean = text.replaceAll("\\s+", " ").trim();
+        String[] sentences = clean.split("(?<=[.!?])\\s+");
+        StringBuilder sb = new StringBuilder();
+        int taken = 0;
+        for (String s : sentences) {
+            if (s.length() < 30) continue; // skip fragments
+            sb.append(s.trim()).append(" ");
+            if (++taken >= sentenceCount) break;
+        }
+        return sb.toString().trim();
+    }
+
     // --- Search History ---
     public void recordSearch(String query) {
         searchHistoryRepository.save(query);

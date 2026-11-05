@@ -69,6 +69,11 @@ public class AgentController {
         return agent.generateTimeline(articleRepository.findAll());
     }
 
+    // --- Daily Briefing ---
+    public String generateDailyBriefing() {
+        return agent.generateDailyBriefing();
+    }  
+
     // --- Article Storage ---
     public List<Article> getAllStoredArticles() {
         return articleRepository.findAll();

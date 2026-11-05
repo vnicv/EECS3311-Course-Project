@@ -100,6 +100,7 @@ public class NewsDashboard extends JFrame {
         JButton refreshTrackedBtn = new JButton("Refresh Tracked Topics");
         JButton createTopicBtn = new JButton("Create Topic"); 
         JButton manageTopicsBtn = new JButton("Manage Topics"); 
+        JButton briefingBtn = new JButton("Daily Briefing");
 
         // Shrink button font so 9 buttons fit without wrapping
         Font smallBtnFont = new Font("SansSerif", Font.PLAIN, 11);
@@ -117,6 +118,7 @@ public class NewsDashboard extends JFrame {
         bottomPanel.add(historyBtn);
         bottomPanel.add(trackBtn);
         bottomPanel.add(refreshTrackedBtn);
+        bottomPanel.add(briefingBtn);
         add(bottomPanel, BorderLayout.SOUTH);
 
         // --- Agent Chat Panel (F15) ---
@@ -303,6 +305,44 @@ public class NewsDashboard extends JFrame {
                 sb.append(ev.getDate().toLocalDate()).append("  ").append(ev.getDate().toLocalTime().withNano(0)).append("  —  ").append(ev.getDescription()).append("\n");
             }
             showScrollableDialog("Timeline", sb.toString());
+        });
+
+        // Daily Briefing
+        briefingBtn.addActionListener(e -> {
+            briefingBtn.setEnabled(false);
+            briefingBtn.setText("Briefing...");
+
+            JTextArea area = new JTextArea("Generating briefing (this may take several minutes on a local LLM)...");
+            area.setLineWrap(true);
+            area.setWrapStyleWord(true);
+            area.setEditable(false);
+            JScrollPane scroll = new JScrollPane(area);
+            scroll.setPreferredSize(new Dimension(850, 500));
+
+            JDialog dlg = new JDialog(this, "Daily Briefing", false);
+            dlg.add(scroll);
+            dlg.pack();
+            dlg.setLocationRelativeTo(this);
+            dlg.setVisible(true);
+
+            SwingWorker<String, Void> worker = new SwingWorker<>() {
+                @Override
+                protected String doInBackground() {
+                    return controller.generateDailyBriefing();
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        area.setText(get());
+                    } catch (Exception ex) {
+                        area.setText("Error: " + ex.getMessage());
+                    }
+                    briefingBtn.setEnabled(true);
+                    briefingBtn.setText("Daily Briefing");
+                }
+            };
+            worker.execute();
         });
 
         // View Search History
