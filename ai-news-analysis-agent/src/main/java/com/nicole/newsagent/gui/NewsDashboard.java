@@ -101,6 +101,7 @@ public class NewsDashboard extends JFrame {
         JButton createTopicBtn = new JButton("Create Topic"); 
         JButton manageTopicsBtn = new JButton("Manage Topics"); 
         JButton briefingBtn = new JButton("Daily Briefing");
+        JButton feedBtn = new JButton("My Feed");
 
         // Shrink button font so 9 buttons fit without wrapping
         Font smallBtnFont = new Font("SansSerif", Font.PLAIN, 11);
@@ -119,6 +120,7 @@ public class NewsDashboard extends JFrame {
         bottomPanel.add(trackBtn);
         bottomPanel.add(refreshTrackedBtn);
         bottomPanel.add(briefingBtn);
+        bottomPanel.add(feedBtn);
         add(bottomPanel, BorderLayout.SOUTH);
 
         // --- Agent Chat Panel (F15) ---
@@ -343,6 +345,25 @@ public class NewsDashboard extends JFrame {
                 }
             };
             worker.execute();
+        });
+
+        // Personalized Feed
+        feedBtn.addActionListener(e -> {
+            List<Article> feed = controller.generatePersonalizedFeed();
+            if (feed.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No articles loaded yet. Fetch some news first.");
+                return;
+            }
+            StringBuilder sb = new StringBuilder("Personalized Feed (ranked by relevance to your topics & history):\n\n");
+            int limit = Math.min(15, feed.size());
+            for (int i = 0; i < limit; i++) {
+                Article a = feed.get(i);
+                sb.append(i + 1).append(". ").append(a.getTitle()).append("\n");
+                sb.append("   ").append(a.getSourceUrl()).append("\n");
+                if (a.isSaved()) sb.append("   [SAVED]\n");
+                sb.append("\n");
+            }
+            showScrollableDialog("My Personalized Feed", sb.toString());
         });
 
         // View Search History

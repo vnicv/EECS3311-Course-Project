@@ -74,6 +74,11 @@ public class AgentController {
         return agent.generateDailyBriefing();
     }  
 
+    // --- Personalized Feed ---
+    public List<Article> generatePersonalizedFeed() {
+        return agent.generatePersonalizedFeed();
+    }
+
     // --- Article Storage ---
     public List<Article> getAllStoredArticles() {
         return articleRepository.findAll();

@@ -169,6 +169,44 @@ public class NewsAnalysisAgent {
         return sb.toString().trim();
     }
 
+    // Personalized Feed 
+    public List<Article> generatePersonalizedFeed() {
+        List<Article> all = articleRepository.findAll();
+        if (all.isEmpty()) return all;
+
+        List<Topic> topics = topicRepository.findAll();
+        List<String> tracked = topicTracker.getTrackedTopics();
+        List<String> history = searchHistoryRepository.findAll();
+
+        return all.stream().sorted((a, b) -> Double.compare(scoreArticle(b, topics, tracked, history), scoreArticle(a, topics, tracked, history))).toList();
+    }
+
+    private double scoreArticle(Article a, List<Topic> topics, List<String> tracked, List<String> history) {
+        String text = (a.getTitle() + " " + a.getContent()).toLowerCase();
+        double score = 0;
+
+        // Saved articles: strong boost
+        if (a.isSaved()) score += 5.0;
+
+        // Match against user's saved Topic objects (F01) — strongest signal
+        for (Topic t : topics) {
+            if (text.contains(t.getName().toLowerCase())) score += 4.0;
+        }
+
+        // Match against tracked topic names (F12)
+        for (String topic : tracked) {
+            if (text.contains(topic.toLowerCase())) score += 3.0;
+        }
+
+        // Match against search history keywords (F17)
+        for (String query : history) {
+            for (String word : query.toLowerCase().split("\\s+")) {
+                if (word.length() > 3 && text.contains(word)) score += 1.0;
+            }
+        }
+        return score;
+    }
+
     // --- Search History ---
     public void recordSearch(String query) {
         searchHistoryRepository.save(query);
