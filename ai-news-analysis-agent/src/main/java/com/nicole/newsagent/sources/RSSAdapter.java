@@ -50,9 +50,16 @@ public class RSSAdapter implements NewsSourceAdapter {
                 if (count >= 10) break;
 
                 String title = entry.getTitle() != null ? entry.getTitle() : "";
+                // Only filter by query if it's NOT a known category (categories are already
+                // handled by picking the dedicated BBC feed)
+                if (query != null && !query.isEmpty() && !isKnownCategory(query) && !title.toLowerCase().contains(query.toLowerCase())) {
+                    continue;
+                }
+                /* 
                 if (query != null && !query.isEmpty() && !title.toLowerCase().contains(query.toLowerCase())) {
                     continue;
                 }
+                */
 
                 String link = entry.getLink();
                 String content = "";
@@ -142,17 +149,16 @@ public class RSSAdapter implements NewsSourceAdapter {
 
     private String scrapeArticle(String url) {
         try {
-            Document doc = Jsoup.connect(url)
-                    .userAgent("Mozilla/5.0 (compatible; NewsAgent/1.0)")
-                    .timeout(5000)
-                    .get();
+            Document doc = Jsoup.connect(url).userAgent("Mozilla/5.0 (compatible; NewsAgent/1.0)").timeout(5000).get();
 
             // Try common article containers across news sites
             String[] selectors = {"article", "[class*=article-body]", "[class*=story-body]", "main", "[role=main]"};
             for (String selector : selectors) {
                 if (!doc.select(selector).isEmpty()) {
                     String text = doc.select(selector).first().text();
-                    if (text.length() > 300) return text;
+                    if (text.length() > 300) {
+                        return truncate(text);
+                    }
                 }
             }
 
@@ -163,6 +169,21 @@ public class RSSAdapter implements NewsSourceAdapter {
             return "";
         }
     }
+
+    // Truncate the scraped content to 3000 chars for faster LLM processing
+    private String truncate(String text) {
+        if (text == null) return "";
+        if (text.length() > 3000) {
+            return text.substring(0, 3000) + "...";
+        }
+        return text;
+    }
+
+    private boolean isKnownCategory(String query) {
+        String q = query.toLowerCase();
+        return q.contains("sport") || q.contains("business") || q.contains("tech") || q.contains("world") || q.contains("science") || q.contains("health") || q.contains("politic") || q.contains("entertain");
+    }
+
     /* 
     // Simple HTML stripper: removes <tag> ... </tag> and replaces with text
     private String stripHtml(String html) {

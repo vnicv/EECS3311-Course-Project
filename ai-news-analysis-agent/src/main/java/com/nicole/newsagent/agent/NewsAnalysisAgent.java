@@ -74,7 +74,8 @@ public class NewsAnalysisAgent {
 
     public List<Article> retrieveArticles(String sourceType, String query) {
         // Give the correct adapter for the given source type
-        NewsSourceAdapter adapter = NewsSourceFactory.createAdapter(sourceType);
+        //NewsSourceAdapter adapter = NewsSourceFactory.createAdapter(sourceType);
+        NewsSourceAdapter adapter = NewsSourceFactory.createAdapter(sourceType, query);
         List<Article> articles = adapter.fetchArticles(query);
         // Save article to repository
         for (Article article : articles) {

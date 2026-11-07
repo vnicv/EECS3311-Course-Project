@@ -5,6 +5,7 @@ import com.nicole.newsagent.models.Article;
 import com.nicole.newsagent.models.Timeline;
 import com.nicole.newsagent.models.TimelineEvent;
 import com.nicole.newsagent.models.Topic;
+import com.nicole.newsagent.sources.NewsSourceFactory;
 
 // Java Swing GUI toolkit
 import javax.swing.*;
@@ -165,7 +166,9 @@ public class NewsDashboard extends JFrame {
 
         // Fetch from BBC RSS
         rssBtn.addActionListener(e -> {
-            fetchArticles(rssBtn, "Fetch Tech News (BBC RSS)", "RSS", "");
+            //fetchArticles(rssBtn, "Fetch Tech News (BBC RSS)", "RSS", "");
+            String query = searchField.getText().trim();
+            fetchArticles(rssBtn, "Fetch News (BBC RSS)", "RSS", query);
         });
 
         // Create Topic
@@ -456,7 +459,13 @@ public class NewsDashboard extends JFrame {
                         listModel.addElement(a);
                     }
                     if (articles.isEmpty()) {
-                        JOptionPane.showMessageDialog(NewsDashboard.this, "No articles found.");
+                        //JOptionPane.showMessageDialog(NewsDashboard.this, "No articles found.");
+                        // Give a helpful hint if the user typed an unrecognized RSS query
+                        String message = "No articles found.";
+                        if ("RSS".equalsIgnoreCase(sourceType) && !query.isEmpty()) {
+                            message += "\n\nYour query '" + query + "' isn't a recognized BBC category,\n" + "and Google News RSS returned nothing.\n\n" + NewsSourceFactory.getCategoryHint();
+                        }
+                        JOptionPane.showMessageDialog(NewsDashboard.this, message);
                     }
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(NewsDashboard.this, "Error fetching news: " + ex.getMessage());
