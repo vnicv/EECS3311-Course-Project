@@ -92,6 +92,7 @@ public class NewsDashboard extends JFrame {
         // --- Bottom Panel: Buttons ---
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton viewArticleBtn = new JButton("View & Analyze Article");
+        JButton compareBtn = new JButton("Compare Sources");
         JButton clustersBtn = new JButton("Detect Duplicate Stories / Clusters");
         JButton savedBtn = new JButton("View Saved Articles");
         JButton timelineBtn = new JButton("View Timeline");
@@ -104,7 +105,7 @@ public class NewsDashboard extends JFrame {
         JButton feedBtn = new JButton("My Feed");
 
         // Shrink button font so 9 buttons fit without wrapping
-        Font smallBtnFont = new Font("SansSerif", Font.PLAIN, 11);
+        Font smallBtnFont = new Font("SansSerif", Font.PLAIN, 9);
         for (JButton b : new JButton[]{createTopicBtn, manageTopicsBtn, viewArticleBtn, clustersBtn, savedBtn, timelineBtn, historyBtn, trackBtn, refreshTrackedBtn}) {
             b.setFont(smallBtnFont);
             b.setMargin(new Insets(2, 6, 2, 6));
@@ -113,6 +114,7 @@ public class NewsDashboard extends JFrame {
         bottomPanel.add(createTopicBtn);
         bottomPanel.add(manageTopicsBtn);
         bottomPanel.add(viewArticleBtn);
+        bottomPanel.add(compareBtn);
         bottomPanel.add(clustersBtn);
         bottomPanel.add(savedBtn);
         bottomPanel.add(timelineBtn);
@@ -211,6 +213,12 @@ public class NewsDashboard extends JFrame {
             }
             ArticleViewer viewer = new ArticleViewer(this, selected, controller);
             viewer.setVisible(true);
+        });
+
+        // Multiple Source Comparison
+        compareBtn.addActionListener(e -> {
+            ComparisonPanel panel = new ComparisonPanel(this, controller);
+            panel.setVisible(true);
         });
 
         // Detect Clusters (Duplicate-Story Detection)

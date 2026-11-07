@@ -67,6 +67,7 @@ public class ArticleViewer extends JDialog {
         JButton entitiesBtn = new JButton("Extract Entities");
         JButton claimsBtn = new JButton("Extract Claims");
         JButton saveBtn = new JButton("Save Article");
+        JButton viewSourceBtn = new JButton("View Source");
 
         summarizeBtn.addActionListener(e -> runAnalysis(summaryArea, "Summarizing",
                 () -> controller.summarize(article)));
@@ -83,11 +84,19 @@ public class ArticleViewer extends JDialog {
             saveBtn.setEnabled(false);
         });
 
+        viewSourceBtn.addActionListener(e -> {
+            boolean ok = controller.openSourceLink(article);
+            if (!ok) {
+                JOptionPane.showMessageDialog(this, "Could not open source. URL: " + controller.getSourceLink(article), "Source Link", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
         analysisBtnPanel.add(summarizeBtn);
         analysisBtnPanel.add(categorizeBtn);
         analysisBtnPanel.add(entitiesBtn);
         analysisBtnPanel.add(claimsBtn);
         analysisBtnPanel.add(saveBtn);
+        analysisBtnPanel.add(viewSourceBtn);
 
         JPanel buttonPanel = new JPanel(new BorderLayout());
         buttonPanel.add(analysisBtnPanel, BorderLayout.WEST);

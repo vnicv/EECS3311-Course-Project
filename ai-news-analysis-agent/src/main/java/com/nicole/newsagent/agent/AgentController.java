@@ -10,6 +10,7 @@ import java.util.List;
 public class AgentController {
     private final NewsAnalysisAgent agent;
     private final ArticleRepository articleRepository;
+    private final com.nicole.newsagent.agent.SourceLinkManager sourceLinkManager = new com.nicole.newsagent.agent.SourceLinkManager();
 
     public AgentController() {
         // Initialize the core system internally
@@ -62,6 +63,15 @@ public class AgentController {
 
     public List<List<Article>> clusterStories() { 
         return agent.clusterArticles(articleRepository.findAll()); 
+    }
+
+    // --- Source Linking ---
+    public String getSourceLink(Article article) {
+        return sourceLinkManager.getSourceLink(article);
+    }
+
+    public boolean openSourceLink(Article article) {
+        return sourceLinkManager.openSourceLink(article);
     }
 
     // --- Timeline ---
