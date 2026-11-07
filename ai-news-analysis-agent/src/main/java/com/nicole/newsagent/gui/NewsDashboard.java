@@ -72,7 +72,7 @@ public class NewsDashboard extends JFrame {
         searchField.setToolTipText("Enter a topic to search (e.g., AI, Tesla, Elections)");
         //JButton fetchBtn = new JButton("Fetch News");
         JButton fetchBtn = new JButton("Fetch News (NewsAPI)");
-        JButton rssBtn = new JButton("Fetch Tech News (BBC RSS)");
+        JButton rssBtn = new JButton("Fetch News (BBC RSS)");
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnPanel.add(fetchBtn);
@@ -99,7 +99,7 @@ public class NewsDashboard extends JFrame {
         JButton timelineBtn = new JButton("View Timeline");
         JButton historyBtn = new JButton("Search History");
         JButton trackBtn = new JButton("Track Topic");
-        JButton refreshTrackedBtn = new JButton("Refresh Tracked Topics");
+        JButton refreshTrackedBtn = new JButton("Refresh Tracked Topics (Demo)");
         JButton createTopicBtn = new JButton("Create Topic"); 
         JButton manageTopicsBtn = new JButton("Manage Topics"); 
         JButton briefingBtn = new JButton("Daily Briefing");
@@ -107,7 +107,7 @@ public class NewsDashboard extends JFrame {
 
         // Shrink button font so 9 buttons fit without wrapping
         Font smallBtnFont = new Font("SansSerif", Font.PLAIN, 9);
-        for (JButton b : new JButton[]{createTopicBtn, manageTopicsBtn, viewArticleBtn, clustersBtn, savedBtn, timelineBtn, historyBtn, trackBtn, refreshTrackedBtn}) {
+        for (JButton b : new JButton[]{createTopicBtn, manageTopicsBtn, viewArticleBtn, compareBtn, clustersBtn, savedBtn, timelineBtn, historyBtn, trackBtn, refreshTrackedBtn, briefingBtn, feedBtn}) {
             b.setFont(smallBtnFont);
             b.setMargin(new Insets(2, 6, 2, 6));
         }
@@ -418,7 +418,7 @@ public class NewsDashboard extends JFrame {
             @Override
             protected void done() {
                 refreshTrackedBtn.setEnabled(true);
-                refreshTrackedBtn.setText("Refresh Tracked Topics");
+                refreshTrackedBtn.setText("Refresh Tracked Topics (Demo)");
             }
         };
         worker.execute();

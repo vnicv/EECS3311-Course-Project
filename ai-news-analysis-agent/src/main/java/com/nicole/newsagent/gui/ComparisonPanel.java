@@ -13,7 +13,7 @@ public class ComparisonPanel extends JDialog {
     public ComparisonPanel(JFrame parent, AgentController controller) {
         super(parent, "Compare Sources (Cluster Comparison)", true);
         this.controller = controller;
-        setSize(900, 650);
+        setSize(900, 700);
         setLocationRelativeTo(parent);
         setLayout(new BorderLayout(10, 10));
 
@@ -59,9 +59,14 @@ public class ComparisonPanel extends JDialog {
         buttonRow.add(closeBtn);
 
         JPanel sourceRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JScrollPane sourceScroll = new JScrollPane(sourceRow, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+        sourceScroll.setPreferredSize(new Dimension(0, 80));
         sourceRow.setBorder(BorderFactory.createTitledBorder("Sources in selected cluster (F11)"));
+
         bottomPanel.add(buttonRow, BorderLayout.EAST);
-        bottomPanel.add(sourceRow, BorderLayout.CENTER);
+        bottomPanel.add(sourceScroll, BorderLayout.CENTER);
+        //bottomPanel.add(sourceRow, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
 
         final List<List<Article>> clustersRef = clusters;

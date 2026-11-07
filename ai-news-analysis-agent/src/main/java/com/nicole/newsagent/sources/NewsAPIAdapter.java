@@ -49,7 +49,7 @@ public class NewsAPIAdapter implements NewsSourceAdapter {
             // Build the request URL safely
             String encodedQuery = URLEncoder.encode(query.isEmpty() ? "technology" : query, StandardCharsets.UTF_8);
             //String url = "https://newsapi.org/v2/everything?q=" + encodedQuery + "&language=en&sortBy=publishedAt&pageSize=10&apiKey=" + apiKey;
-            String url = "https://newsapi.org/v2/everything?q=" + encodedQuery + "&language=en&sortBy=publishedAt&pageSize=5" + "&excludeDomains=wsj.com,nytimes.com,bloomberg.com,ft.com" + "&apiKey=" + apiKey;
+            String url = "https://newsapi.org/v2/everything?q=" + encodedQuery + "&language=en&sortBy=publishedAt&pageSize=10" + "&excludeDomains=wsj.com,nytimes.com,bloomberg.com,ft.com" + "&apiKey=" + apiKey;
 
             HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).header("Accept", "application/json").GET().build();
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());

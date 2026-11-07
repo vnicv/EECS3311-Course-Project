@@ -106,10 +106,24 @@ public class NewsAnalysisAgent {
     public String compare(List<Article> articles) {
         // Build a single combined prompt with each article's source and content
         StringBuilder sb = new StringBuilder();
+        int idx = 1;
         for (Article a : articles) {
-            sb.append("Source: ").append(a.getSourceUrl()).append("\n").append(a.getContent()).append("\n\n");
+            // Truncate each article to 500 chars so the combined prompt stays manageable
+            String content = a.getContent() == null ? "" : a.getContent();
+            if (content.length() > 100) {
+                content = content.substring(0, 100) + "...";
+            }
+            sb.append("--- Article ").append(idx++).append(" ---\n");
+            sb.append("Source: ").append(a.getSourceUrl()).append("\n");
+            sb.append("Title: ").append(a.getTitle()).append("\n");
+            sb.append("Preview: ").append(content).append("\n\n");
         }
-        return comparison.analyze(sb.toString());
+        // Cap the total prompt length in case there are 10+ articles
+        String combined = sb.toString();
+        if (combined.length() > 3000) {
+            combined = combined.substring(0, 3000) + "\n...[truncated for length]";
+        }
+        return comparison.analyze(combined);
     }
 
     // Group related articles into clusters based on content similarity
