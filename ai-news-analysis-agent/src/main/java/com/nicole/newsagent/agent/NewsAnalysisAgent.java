@@ -13,6 +13,7 @@ import com.nicole.newsagent.repositories.SearchHistoryRepository;
 import com.nicole.newsagent.repositories.TopicRepository;
 import com.nicole.newsagent.sources.NewsSourceAdapter;
 import com.nicole.newsagent.sources.NewsSourceFactory;
+import com.google.gson.annotations.Expose;
 import com.nicole.newsagent.agent.NewsAgentTools;
 import com.nicole.newsagent.agent.PlanningEngine;
 import com.nicole.newsagent.agent.TopicTracker;
@@ -66,6 +67,10 @@ public class NewsAnalysisAgent {
 
     public List<Topic> getAllTopics() {
         return topicRepository.findAll();
+    }
+
+    public List<Article> getAllStoredArticles() {
+        return articleRepository.findAll();
     }
 
     public boolean deleteTopic(String id) {

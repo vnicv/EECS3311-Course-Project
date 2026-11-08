@@ -24,6 +24,18 @@ public class AgentController {
     public List<Article> fetchNews(String sourceType, String query) {
         //System.out.println("Agent: Fetching articles from " + sourceType + " for '" + query + "'...");
         return agent.retrieveArticles(sourceType, query);
+        /* 
+        List<Article> fetched = agent.retrieveArticles(sourceType, query);
+        // Remember the most recent batch per source
+        if ("RSS".equalsIgnoreCase(sourceType)) {
+            lastRSSBatch.clear();
+            lastRSSBatch.addAll(fetched);
+        } else if ("NEWS_API".equalsIgnoreCase(sourceType)) {
+            lastNewsAPIBatch.clear();
+            lastNewsAPIBatch.addAll(fetched);
+        }
+        return fetched;
+        */
     }
 
     // --- Topic Creation ---

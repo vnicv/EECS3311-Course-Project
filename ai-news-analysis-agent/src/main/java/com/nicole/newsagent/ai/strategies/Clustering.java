@@ -27,30 +27,72 @@ public class Clustering implements AnalysisStrategy<List<Article>, List<List<Art
 
     @Override
     public List<List<Article>> analyze(List<Article> articles) {
+        int n = articles.size();
+        if (n == 0) {
+            return new ArrayList<>();
+        }
+
+        // Step 1: compute pairwise similarity matrix
+        double[][] sim = new double[n][n];
+        for (int i = 0; i < n; i++) {
+            sim[i][i] = 1.0;
+            for (int j = i + 1; j < n; j++) {
+                double s = combinedSimilarity(articles.get(i), articles.get(j));
+                sim[i][j] = s;
+                sim[j][i] = s;
+            }
+        }
+
+        // Step 2: build connected components (union-find) using threshold
+        int[] parent = new int[n];
+        for (int i = 0; i < n; i++) parent[i] = i;
+
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (sim[i][j] >= SIMILARITY_THRESHOLD) {
+                    int ri = find(parent, i);
+                    int rj = find(parent, j);
+                    if (ri != rj) parent[ri] = rj;
+                }
+            }
+        }
+
+        // Step 3: group articles by component root
+        Map<Integer, List<Article>> groups = new LinkedHashMap<>();
+        for (int i = 0; i < n; i++) {
+            int root = find(parent, i);
+            groups.computeIfAbsent(root, k -> new ArrayList<>()).add(articles.get(i));
+        }
+        return new ArrayList<>(groups.values());
+    }
+
+    private int find(int[] parent, int i) {
+        while (parent[i] != i) {
+            parent[i] = parent[parent[i]];  // path compression
+            i = parent[i];
+        }
+        return i;
+    }
+    /* 
+    @Override
+    public List<List<Article>> analyze(List<Article> articles) {
         List<List<Article>> clusters = new ArrayList<>();
-        
         for (Article article : articles) {
             boolean added = false;
             for (List<Article> cluster : clusters) {
-                // Compare against the cluster representative (first article)
-                double similarity = combinedSimilarity(article, cluster.get(0));
-                if (similarity >= SIMILARITY_THRESHOLD) {
+                // [FIXED] Compare against EVERY article in the cluster, take the best match
+                // This removes the "first article wins" ordering bias
+                double bestSim = 0.0;
+                for (Article existing : cluster) {
+                    double sim = combinedSimilarity(article, existing);
+                    if (sim > bestSim) bestSim = sim;
+                }
+                if (bestSim >= SIMILARITY_THRESHOLD) {
                     cluster.add(article);
                     added = true;
                     break;
                 }
             }
-            /* 
-            for (List<Article> cluster : clusters) {
-                // Simple similarity check: if titles share 50%+ of words, same cluster
-                if (calculateSimilarity(article.getTitle(), cluster.get(0).getTitle()) > 0.5) {
-                    cluster.add(article);
-                    added = true;
-                    break;
-                }
-            }
-            */
-
             if (!added) {
                 List<Article> newCluster = new ArrayList<>();
                 newCluster.add(article);
@@ -58,15 +100,52 @@ public class Clustering implements AnalysisStrategy<List<Article>, List<List<Art
             }
         }
         return clusters;
+ 
+        // for (Article article : articles) {
+        //     boolean added = false;
+        //     for (List<Article> cluster : clusters) {
+        //         // Compare against the cluster representative (first article)
+        //         double similarity = combinedSimilarity(article, cluster.get(0));
+        //         if (similarity >= SIMILARITY_THRESHOLD) {
+        //             cluster.add(article);
+        //             added = true;
+        //             break;
+        //         }
+        //     }
+
+        //     if (!added) {
+        //         List<Article> newCluster = new ArrayList<>();
+        //         newCluster.add(article);
+        //         clusters.add(newCluster);
+        //     }
+        // }
+        // return clusters;
+
     }
+    */
 
     // Combined similarity: 60% title, 40% content preview.
     private double combinedSimilarity(Article a, Article b) {
         double titleSim = jaccard(wordSet(a.getTitle()), wordSet(b.getTitle()));
         double contentSim = jaccard(wordSet(preview(a.getContent())), wordSet(preview(b.getContent())));
 
+        // Add a 0.05 bonus if both URLs point to the same host (same outlet)
+        double hostBonus = sameHost(a.getSourceUrl(), b.getSourceUrl()) ? 0.05 : 0.0;
         // Returns a score between 0.0 and 1.0.
-        return (titleSim * 0.6) + (contentSim * 0.4); // title is weighted more heavily because it's the strongest "topic" signal
+        return (titleSim * 0.6) + (contentSim * 0.4) + hostBonus;
+    }
+
+    private boolean sameHost(String url1, String url2) {
+        if (url1 == null || url2 == null) {
+            return false;
+        }
+        try {
+            String h1 = new java.net.URI(url1).getHost();
+            String h2 = new java.net.URI(url2).getHost();
+            return h1 != null && h1.equals(h2);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     // Take the first N characters of the content, so long scraped articles don't dominate 
