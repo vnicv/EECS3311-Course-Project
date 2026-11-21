@@ -190,17 +190,97 @@ Enter `1` for CLI, `2` for GUI.
 
 ### 6.2 CLI walkthrough
 
-1. **Launch the CLI** (`Main` → choose `1`).
-2. Use the numbered menu:
-   ```
-   Menu:
-   1. Fetch News (NewsAPI)
-   2. Fetch Tech News (BBC RSS)
-   3. Summarize an Article
-   4. Exit
-   ```
-3. Type `1`, then a query such as `Tesla`. The CLI fetches articles and shows the first 5 titles.
-4. Type `3`, then an index to summarize an article.
+The CLI is a first-class interface — every feature available in the GUI
+is reachable from the command line. It supports three launch styles:
+
+| Style | Command |
+|-------|---------|
+| Interactive CLI (skip chooser) | `java -jar target/ai-news-analysis-agent-1.0-SNAPSHOT.jar -cli` |
+| Run a task file non-interactively | `java -jar target/ai-news-analysis-agent-1.0-SNAPSHOT.jar -input example-tasks.txt` |
+| Pipe commands via stdin | `cat example-tasks.txt \| java -jar target/ai-news-analysis-agent-1.0-SNAPSHOT.jar -cli` |
+
+If you launch the JAR with **no arguments**, you get the "1=CLI, 2=GUI"
+chooser (unchanged from earlier versions).
+
+#### Supported CLI options
+
+```
+-cli              Start the interactive CLI (skip the GUI/CLI chooser).
+-gui              Launch the Swing GUI directly.
+-input <file>     Run commands from <file> non-interactively, then exit.
+-script <file>    Alias for -input.
+-help, -h         Print CLI usage and exit.
+```
+
+Run `java -jar target/ai-news-analysis-agent-1.0-SNAPSHOT.jar -help`
+for the full list of CLI *commands* (fetch, summarize, clusters,
+compare, briefing, topic, track, ask, …).
+
+#### CLI commands at a glance
+
+```
+help                             Show in-shell help
+fetch <newsapi|rss> <query>      Fetch articles (multi-word queries allowed)
+list [all|saved]                 List stored articles
+summarize <index>                AI summary of an article
+categorize <index>               AI categorization
+entities <index>                 AI named-entity extraction
+claims <index>                   AI factual-claim extraction
+save <index>                     Mark an article as saved
+source <index>                   Print the article's source URL
+clusters                         Detect duplicate / clustered stories
+compare <index>                  Compare the cluster that <index> belongs to
+compare-cluster <n>              Compare cluster <n> (1-based, from 'clusters')
+timeline                         Chronological timeline
+briefing                         Generate the daily briefing
+feed                             Personalized, relevance-ranked feed
+history | history clear          Show / clear search history
+topic create|list|delete         Manage topics
+track | untrack | tracked        Manage tracked topics
+refresh-tracked                  Fetch new articles for tracked topics
+ask <question>                   Natural-language question to the AI agent
+exit                             Exit the CLI
+```
+
+#### Script file format
+
+One command per line. Blank lines and lines beginning with `#` are ignored.
+A command that fails prints `[ERROR] ...` to stderr and execution continues
+(so a script run always produces the complete set of results). The process
+exits with code `0` on success and `1` if any command failed — useful for
+Stage 3 automated testing.
+
+An example file `example-tasks.txt` is included in the repository root:
+
+```
+# Fetch news from both sources
+fetch newsapi Tesla
+fetch rss technology
+
+# Analyze the first article
+list
+summarize 0
+categorize 0
+entities 0
+claims 0
+
+# Cluster and compare
+clusters
+compare-cluster 1
+
+# Reports
+timeline
+feed
+briefing
+ask What is the latest news about AI?
+exit
+```
+
+Run it with:
+
+```bash
+java -jar target/ai-news-analysis-agent-1.0-SNAPSHOT.jar -input example-tasks.txt
+```
 
 ### 6.3 Example search queries
 

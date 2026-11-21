@@ -14,12 +14,77 @@ import java.util.UUID;
 
 import com.nicole.newsagent.agent.AgentController;
 import com.nicole.newsagent.gui.NewsDashboard;
-import com.nicole.newsagent.models.Article;
+//import com.nicole.newsagent.models.Article;
 
 import javax.swing.*;
-import java.util.List;
+//import java.util.List;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Scanner;
 
+public class Main {
+    public static void main(String[] args) {
+        CliOptions opts = CliOptions.parse(args);
+
+        // Help / parse errors → print usage and exit
+        if (opts.getMode() == CliOptions.Mode.HELP) {
+            for (String e : opts.getErrors()) System.err.println("[ERROR] " + e);
+            System.out.println(CliOptions.usage());
+            System.exit(opts.getErrors().isEmpty() ? 0 : 2);
+            return;
+        }
+
+        System.out.println("AI News Analysis Agent Loading...");
+        AgentController controller = new AgentController();
+
+        switch (opts.getMode()) {
+            case GUI -> launchGui(controller);
+
+            case CLI -> {
+                NewsCLI cli = new NewsCLI(controller, System.in, System.out, System.err);
+                int code = cli.runInteractive(true);
+                System.exit(code);
+            }
+
+            case SCRIPT -> {
+                NewsCLI cli = new NewsCLI(controller, System.in, System.out, System.err);
+                int code = cli.runScript(Path.of(opts.getScriptFile()));
+                System.exit(code);
+            }
+
+            default -> runChooser(controller);
+        }
+    }
+
+    private static void runChooser(AgentController controller) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("\nSelect Mode:");
+        System.out.println("1. Command Line Interface (CLI)");
+        System.out.println("2. Graphical User Interface (GUI)");
+        System.out.print("Choice: ");
+
+        String choice = scanner.nextLine();
+
+        if (choice.trim().equals("2")) {
+            launchGui(controller);
+        } else {
+            NewsCLI cli = new NewsCLI(controller, scanner, System.out, System.err);
+            System.exit(cli.runInteractive(false));
+        }
+    }
+
+    private static void launchGui(AgentController controller) {
+        SwingUtilities.invokeLater(() -> {
+            NewsDashboard dashboard = new NewsDashboard(controller);
+            dashboard.setVisible(true);
+        });
+    }
+}
+/* 
 public class Main {
     public static void main(String[] args) {
         System.out.println("AI News Analysis Agent Loading...");
@@ -96,55 +161,5 @@ public class Main {
             }
         }
     }
-    /*
-    public static void main(String[] args) {
-        System.out.println("=== AI News Analysis Agent ===");
-        AgentController controller = new AgentController();
-        Scanner scanner = new Scanner(System.in);
-
-        while (true) {
-            System.out.println("\nMenu:");
-            System.out.println("1. Fetch Tech News");
-            System.out.println("2. Summarize an Article");
-            System.out.println("3. Exit");
-            System.out.print("Choose an option: ");
-            
-            String choice = scanner.nextLine();
-
-            switch (choice) {
-                case "1":
-                    List<Article> fetched = controller.fetchNews("NEWS_API", "technology"); // Uses live API
-                    // Or use "RSS" for the free BBC feed
-                    System.out.println("Fetched " + fetched.size() + " articles.");
-                    for (int i = 0; i < fetched.size() && i < 10; i++) { // Show top 5
-                        System.out.println("[" + i + "] " + fetched.get(i).getTitle());
-                    }
-                    break;
-                case "2":
-                    List<Article> allArticles = controller.getAllStoredArticles();
-                    if (allArticles.isEmpty()) {
-                        System.out.println("No articles in memory. Fetch some first!");
-                        break;
-                    }
-                    System.out.print("Enter article index to summarize (0-" + (allArticles.size()-1) + "): ");
-                    try {
-                        int index = Integer.parseInt(scanner.nextLine());
-                        Article selected = allArticles.get(index);
-                        System.out.println("Summarizing: " + selected.getTitle());
-                        String summary = controller.summarize(selected);
-                        System.out.println("\n--- SUMMARY ---\n" + summary + "\n---------------");
-                    } catch (Exception e) {
-                        System.out.println("Invalid index.");
-                    }
-                    break;
-                case "3":
-                    System.out.println("Exiting...");
-                    scanner.close();
-                    return;
-                default:
-                    System.out.println("Invalid choice.");
-            }
-        }
-    }
-    */
 }
+*/

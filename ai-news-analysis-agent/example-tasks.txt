@@ -1,0 +1,42 @@
+# Example CLI task file for the AI News Analysis Agent.
+# Run with:  java -jar target/ai-news-analysis-agent-1.0-SNAPSHOT.jar -input example-tasks.txt
+#
+# Lines beginning with '#' are ignored. Errors are printed as [ERROR] and
+# execution continues, so you always see the full run.
+
+# --- Fetch news from both sources ---
+fetch newsapi Tesla
+fetch rss technology
+
+# --- Inspect what was retrieved ---
+list
+
+# --- Run the AI analyses on the first article ---
+summarize 0
+categorize 0
+entities 0
+claims 0
+
+# --- Save and inspect the source URL ---
+save 0
+source 0
+
+# --- Cluster, then compare the first cluster with 2+ articles ---
+clusters
+
+# --- Reports ---
+timeline
+feed
+briefing
+
+# --- Topic tracking ---
+topic create AI
+topic list
+track AI
+tracked
+
+# --- Natural-language question to the AI agent ---
+ask What is the latest news about AI?
+
+# --- Done ---
+exit
